@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:prerequisite_hackathon_app/view/home.dart';
 import 'package:prerequisite_hackathon_app/view/register.dart';
 
 class Login extends StatefulWidget {
@@ -28,7 +29,9 @@ class _LoginState extends State<Login> {
           await db.collection("users").doc(user.user.uid).get();
 
       final data = snapshot.data();
-      Navigator.of(context).pushNamed("/home", arguments: data);
+      // Navigator.of(context).pushNamed("/home", arguments: data);
+      Navigator.of(context)
+          .push(new MaterialPageRoute(builder: (context) => Home()));
     } catch (e) {
       showDialog(
           context: context,

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:prerequisite_hackathon_app/helper/data.dart';
 import 'package:prerequisite_hackathon_app/helper/news.dart';
@@ -6,9 +9,12 @@ import 'package:prerequisite_hackathon_app/models/article_model.dart';
 import 'package:prerequisite_hackathon_app/models/category_model.dart';
 import 'package:prerequisite_hackathon_app/view/article_view.dart';
 import 'package:prerequisite_hackathon_app/view/category_news.dart';
+import 'package:prerequisite_hackathon_app/view/favorite_news.dart';
 import 'package:prerequisite_hackathon_app/view/login.dart';
 import 'package:prerequisite_hackathon_app/view/news_search.dart';
+import 'package:prerequisite_hackathon_app/view/profile.dart';
 import 'package:prerequisite_hackathon_app/view/register.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -20,6 +26,7 @@ class _HomeState extends State<Home> {
   List<ArticleModel> articles = <ArticleModel>[];
 
   bool _loading = true;
+  // bool _isFavorited = true;
 
   void initState() {
     super.initState();
@@ -36,6 +43,32 @@ class _HomeState extends State<Home> {
     });
   }
 
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context)
+            .push(new MaterialPageRoute(builder: (context) => Home()));
+        break;
+      case 1:
+        Navigator.of(context)
+            .push(new MaterialPageRoute(builder: (context) => NewsSearch()));
+        break;
+      case 2:
+        Navigator.of(context)
+            .push(new MaterialPageRoute(builder: (context) => FavoriteNews()));
+        break;
+      case 3:
+        Navigator.of(context)
+            .push(new MaterialPageRoute(builder: (context) => Profile()));
+        break;
+    }
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,13 +78,6 @@ class _HomeState extends State<Home> {
           children: <Widget>[Text("Flutter News")],
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              Navigator.of(context).push(
-                  new MaterialPageRoute(builder: (context) => NewsSearch()));
-            },
-          ),
           IconButton(
             icon: Icon(
               Icons.person,
@@ -65,46 +91,7 @@ class _HomeState extends State<Home> {
         centerTitle: true,
         elevation: 0.0,
       ),
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text("Sania"),
-              accountEmail: Text("saniak12@gmail.com"),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.orange,
-                child: Text(
-                  "S",
-                  style: TextStyle(fontSize: 40.0),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text("Home"),
-              onTap: () {
-                Navigator.of(context).pushNamed("/home");
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.favorite),
-              title: Text("Favorite"),
-              onTap: () {
-                Navigator.of(context).pushNamed("/favorite");
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text("Profile"),
-              onTap: () {
-                Navigator.of(context).pushNamed("/profile");
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: Drawer(),
       body: _loading
           ? Center(
               child: Container(
@@ -113,7 +100,7 @@ class _HomeState extends State<Home> {
             )
           : SingleChildScrollView(
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Column(
                   children: <Widget>[
                     ///Categories
@@ -131,6 +118,13 @@ class _HomeState extends State<Home> {
                         },
                       ),
                     ),
+
+                    ///Seachbar
+                    // Container(
+                    //   child: TextField(
+                    //     decoration: InputDecoration(hintText: 'Search'),
+                    //   ),
+                    // ),
 
                     ///Blogs
                     Container(
@@ -153,8 +147,72 @@ class _HomeState extends State<Home> {
                 ),
               ),
             ),
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+            canvasColor: Color(0xFF3B3D58),
+            primaryColor: Colors.white,
+            textTheme: Theme.of(context)
+                .textTheme
+                .copyWith(caption: TextStyle(color: Colors.grey))),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              title: Text('Home'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search_sharp),
+              title: Text('Search'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.favorite),
+              title: Text('Favorite'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              title: Text('Profile'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.more_horiz),
+              title: Text('More'),
+            ),
+          ],
+          onTap: _onItemTapped,
+        ),
+      ),
     );
   }
+}
+
+Future<bool> saveNamePreference(String newstitle) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  // FirebaseAuth.instance.authStateChanges().listen((User user) {
+  //   if (user == null) {
+  //     print('User is currently signed out!');
+  //   } else {
+  //     print('User is signed in!');
+  //   }
+  // });
+  // bool userStatus = prefs.containsKey('uid');
+  // if (userStatus == null) {
+  //   print('User is currently signed out!');
+  // } else {
+  //   print('User is signed in!');
+  // }
+  var email = prefs.getString('email');
+  print(email);
+  runApp(MaterialApp(home: email == null ? Login() : Home()));
+
+  prefs.setString("newstitle", newstitle);
+  return prefs.commit();
+}
+
+Future<String?> getNamePreference() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? newstitle = prefs.getString("newstitle");
+  return newstitle;
 }
 
 class CategoryTile extends StatelessWidget {
@@ -230,6 +288,20 @@ class BlogTile extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 16),
         child: Column(
           children: <Widget>[
+            Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                    onPressed: () {
+                      String newstitle = title;
+                      saveNamePreference(newstitle).then((bool commited) {
+                        Navigator.of(context).pushNamed('/favorite');
+                      });
+                    },
+                    icon: Icon(
+                      Icons.favorite,
+                      size: 35,
+                      color: Colors.pink,
+                    ))),
             ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: Image.network(imageUrl)),

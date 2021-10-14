@@ -40,7 +40,6 @@ class MyApp extends StatelessWidget {
             routes: {
               "/login": (context) => Login(),
               "/register": (context) => Register(),
-              "/home": (context) => Home(),
               "/search": (context) => NewsSearch(),
               "/favorite": (context) => FavoriteNews(),
               "/profile": (context) => Profile(),
