@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:prerequisite_hackathon_app/models/article_model.dart';
 import 'package:prerequisite_hackathon_app/helper/news.dart';
 import 'package:prerequisite_hackathon_app/view/article_view.dart';
+import 'package:prerequisite_hackathon_app/view/home.dart';
+import 'package:prerequisite_hackathon_app/view/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CategoryNews extends StatefulWidget {
   final String category;
@@ -88,6 +91,22 @@ class _CategoryNewsState extends State<CategoryNews> {
   }
 }
 
+Future<bool> saveNamePreference(String newstitle) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var email = prefs.getString('email');
+  print(email);
+  runApp(MaterialApp(home: email == null ? Login() : Home()));
+
+  prefs.setString("newstitle", newstitle);
+  return prefs.commit();
+}
+
+Future<String?> getNamePreference() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? newstitle = prefs.getString("newstitle");
+  return newstitle;
+}
+
 class BlogTile extends StatelessWidget {
   final String imageUrl, title, description, url;
   BlogTile(
@@ -111,6 +130,20 @@ class BlogTile extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 16),
         child: Column(
           children: <Widget>[
+            Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                    onPressed: () {
+                      String newstitle = title;
+                      saveNamePreference(newstitle).then((bool commited) {
+                        Navigator.of(context).pushNamed('/favorite');
+                      });
+                    },
+                    icon: Icon(
+                      Icons.favorite,
+                      size: 35,
+                      color: Colors.pink,
+                    ))),
             ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: Image.network(imageUrl)),

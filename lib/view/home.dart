@@ -188,19 +188,6 @@ class _HomeState extends State<Home> {
 
 Future<bool> saveNamePreference(String newstitle) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  // FirebaseAuth.instance.authStateChanges().listen((User user) {
-  //   if (user == null) {
-  //     print('User is currently signed out!');
-  //   } else {
-  //     print('User is signed in!');
-  //   }
-  // });
-  // bool userStatus = prefs.containsKey('uid');
-  // if (userStatus == null) {
-  //   print('User is currently signed out!');
-  // } else {
-  //   print('User is signed in!');
-  // }
   var email = prefs.getString('email');
   print(email);
   runApp(MaterialApp(home: email == null ? Login() : Home()));
